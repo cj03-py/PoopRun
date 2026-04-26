@@ -38,6 +38,34 @@ export default function App() {
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
   const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize Audio
+  useEffect(() => {
+    audioRef.current = new Audio('https://cdn.pixabay.com/audio/2022/01/18/audio_d0a13f69d2.mp3'); // Cheerful track
+    if (audioRef.current) {
+      audioRef.current.loop = true;
+      audioRef.current.volume = 0.4;
+    }
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  // Handle Music Playback based on Game State
+  useEffect(() => {
+    if (!audioRef.current) return;
+
+    if (gameState === 'PLAYING') {
+      audioRef.current.play().catch(e => console.log('Audio playback failed (usually requires interaction first):', e));
+    } else {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+  }, [gameState]);
 
   // Handle Resize
   useEffect(() => {
