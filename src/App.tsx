@@ -42,7 +42,7 @@ export default function App() {
 
   // Initialize Audio
   useEffect(() => {
-    audioRef.current = new Audio('https://cdn.pixabay.com/audio/2022/01/18/audio_d0a13f69d2.mp3'); // Cheerful track
+    audioRef.current = new Audio('https://cdn.pixabay.com/audio/2021/08/09/audio_65cf23336f.mp3'); // 8-bit happy/pop track
     if (audioRef.current) {
       audioRef.current.loop = true;
       audioRef.current.volume = 0.4;
