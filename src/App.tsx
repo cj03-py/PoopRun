@@ -37,6 +37,16 @@ export default function App() {
   const [gameState, setGameState] = useState<'IDLE' | 'PLAYING' | 'GAMEOVER' | 'WON'>('IDLE');
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
+  const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
+
+  // Handle Resize
+  useEffect(() => {
+    const handleResize = () => {
+      setDimensions({ width: window.innerWidth, height: window.innerHeight });
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Game Refs to avoid re-renders during loop
   const gameData = useRef({
@@ -114,7 +124,9 @@ export default function App() {
   }, []);
 
   const resetGame = useCallback(() => {
-    gameData.current.player.y = 150;
+    const canvas = canvasRef.current;
+    const initialHeight = canvas ? canvas.height - 230 : 150;
+    gameData.current.player.y = initialHeight;
     gameData.current.player.vy = 0;
     gameData.current.obstacles = [];
     gameData.current.speed = INITIAL_SPEED;
@@ -274,8 +286,10 @@ export default function App() {
     ctx.fillRect(canvas.width - 120, 40, 70, 70);
 
     // Mountains (Pinkish shades)
-    for (let i = 0; i < 4; i++) {
-        const offset = (data.mountainsX + i * 400) % (canvas.width + 400) - 200;
+    const mountainSpacing = 400;
+    const mountainCount = Math.ceil(canvas.width / mountainSpacing) + 2;
+    for (let i = 0; i < mountainCount; i++) {
+        const offset = (data.mountainsX + i * mountainSpacing) % (canvas.width + mountainSpacing) - mountainSpacing;
         const baseY = canvas.height - 90;
         
         ctx.fillStyle = '#DB7093'; // Pale Violet Red
@@ -305,8 +319,10 @@ export default function App() {
 
     // Dirt Specs (Pink theme detail)
     ctx.fillStyle = '#C71585';
-    for (let i = 0; i < 6; i++) {
-        const x = (data.groundX + i * 200 + 50) % (canvas.width + 100) - 50;
+    const dirtSpacing = 200;
+    const dirtCount = Math.ceil(canvas.width / dirtSpacing) + 1;
+    for (let i = 0; i < dirtCount; i++) {
+        const x = (data.groundX + i * dirtSpacing + 50) % (canvas.width + dirtSpacing) - dirtSpacing;
         ctx.fillRect(x, groundTop + 30, 8, 8);
         ctx.fillRect(x + 100, groundTop + 60, 8, 8);
     }
@@ -421,15 +437,15 @@ export default function App() {
   }, [gameState]);
 
   return (
-    <div className="relative w-full h-screen bg-[#2D0A1C] flex items-center justify-center overflow-hidden font-mono select-none">
+    <div className="relative w-full h-screen bg-white overflow-hidden font-mono select-none">
       <div 
-        className="relative w-full max-w-5xl aspect-[16/9] bg-[#FFB6C1] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-[12px] border-[#4A0E2E] cursor-pointer"
+        className="relative w-full h-full cursor-pointer"
         onClick={jump}
       >
         <canvas
           ref={canvasRef}
-          width={800}
-          height={450}
+          width={dimensions.width}
+          height={dimensions.height}
           className="w-full h-full block"
           style={{ imageRendering: 'pixelated' }}
         />
@@ -456,25 +472,25 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-pink-900/50 backdrop-blur-sm flex flex-col items-center justify-center text-white"
+              className="absolute inset-0 bg-pink-900/50 backdrop-blur-sm flex flex-col items-center justify-center text-white p-4"
             >
-              <div className="bg-pink-800/40 border-8 border-white p-12 flex flex-col items-center shadow-[10px_10px_0_rgba(0,0,0,0.5)]">
+              <div className="bg-pink-800/40 border-8 border-white p-6 md:p-12 flex flex-col items-center shadow-[10px_10px_0_rgba(0,0,0,0.5)] max-w-sm md:max-w-none w-full md:w-auto">
                 <motion.h1 
                     initial={{ y: -20 }}
                     animate={{ y: 0 }}
-                    className="text-6xl font-black mb-6 text-center leading-none tracking-tighter italic"
-                    style={{ textShadow: '6px 6px 0 #000' }}
+                    className="text-4xl md:text-6xl font-black mb-4 md:mb-6 text-center leading-none tracking-tighter italic"
+                    style={{ textShadow: '4px 4px 0 #000' }}
                 >
                     PUG RUN<br/><span className="text-pink-300">2600</span>
                 </motion.h1>
-                <p className="text-xl mb-10 font-bold opacity-90 text-center max-w-sm" style={{ textShadow: '2px 2px 0 #000' }}>
+                <p className="text-base md:text-xl mb-6 md:mb-10 font-bold opacity-90 text-center max-w-sm" style={{ textShadow: '2px 2px 0 #000' }}>
                     ¡Llega a los 2600 puntos para celebrar el cumplemes!
                 </p>
                 <button 
                     onClick={(e) => { e.stopPropagation(); resetGame(); }}
-                    className="px-10 py-5 bg-pink-500 hover:bg-pink-400 text-white font-black text-2xl border-4 border-white shadow-[6px_6px_0_rgba(0,0,0,1)] transition-transform hover:-translate-y-1 active:translate-y-0 flex items-center gap-3"
+                    className="px-6 py-3 md:px-10 md:py-5 bg-pink-500 hover:bg-pink-400 text-white font-black text-xl md:text-2xl border-4 border-white shadow-[6px_6px_0_rgba(0,0,0,1)] transition-transform hover:-translate-y-1 active:translate-y-0 flex items-center gap-3 w-full md:w-auto justify-center"
                 >
-                    <Play fill="currentColor" size={28} /> EMPEZAR
+                    <Play fill="currentColor" size={24} /> EMPEZAR
                 </button>
               </div>
             </motion.div>
@@ -484,16 +500,16 @@ export default function App() {
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="absolute inset-0 bg-pink-950/40 backdrop-blur-md flex flex-col items-center justify-center text-white"
+              className="absolute inset-0 bg-pink-950/40 backdrop-blur-md flex flex-col items-center justify-center text-white p-4"
             >
-               <div className="bg-pink-900/60 border-8 border-white p-12 flex flex-col items-center shadow-[10px_10px_0_rgba(0,0,0,0.5)]">
-                <h2 className="text-7xl font-black mb-4 italic" style={{ textShadow: '6px 6px 0 #000' }}>Poopdiste!</h2>
-                <p className="text-2xl mb-8 font-bold" style={{ textShadow: '2px 2px 0 #000' }}>Puntuación: {score}</p>
+               <div className="bg-pink-900/60 border-8 border-white p-6 md:p-12 flex flex-col items-center shadow-[10px_10px_0_rgba(0,0,0,0.5)] max-w-sm md:max-w-none w-full md:w-auto">
+                <h2 className="text-5xl md:text-7xl font-black mb-2 md:mb-4 italic text-center" style={{ textShadow: '4px 4px 0 #000' }}>Perdiste!</h2>
+                <p className="text-xl md:text-2xl mb-6 md:mb-8 font-bold" style={{ textShadow: '2px 2px 0 #000' }}>Puntaje: {score}</p>
                 <button 
                     onClick={(e) => { e.stopPropagation(); resetGame(); }}
-                    className="px-10 py-5 bg-white text-pink-600 font-black text-2xl border-4 border-pink-600 shadow-[6px_6px_0_rgba(0,0,0,1)] transition-transform hover:-translate-y-1 active:translate-y-0 flex items-center gap-3"
+                    className="px-6 py-3 md:px-10 md:py-5 bg-white text-pink-600 font-black text-xl md:text-2xl border-4 border-pink-600 shadow-[6px_6px_0_rgba(0,0,0,1)] transition-transform hover:-translate-y-1 active:translate-y-0 flex items-center gap-3 w-full md:w-auto justify-center"
                 >
-                    <RotateCcw size={28} /> REINTENTAR
+                    <RotateCcw size={24} /> REINTENTAR
                 </button>
               </div>
             </motion.div>
@@ -527,7 +543,7 @@ export default function App() {
         </AnimatePresence>
       </div>
 
-      <div className="absolute bottom-6 text-white/40 text-xs font-mono tracking-[0.3em] uppercase">
+      <div className="absolute bottom-6 w-full text-center text-pink-600/30 text-xs font-mono tracking-[0.3em] uppercase pointer-events-none">
         SOLO LOS MEJORES LLEGAN AL PUG FINAL
       </div>
     </div>
